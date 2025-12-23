@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wellness Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Wellness Tracker</h2>
+      <p>Track your health journey</p>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-page="dashboard">
+        <i class="fa-solid fa-grid-2"></i><span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-page="hydration">
+        <i class="fa-solid fa-droplet"></i><span>Hydration</span>
+      </button>
+      <button class="nav-item" data-page="body">
+        <i class="fa-regular fa-user"></i><span>Body Metrics</span>
+      </button>
+      <button class="nav-item" data-page="sleep">
+        <i class="fa-regular fa-moon"></i><span>Sleep</span>
+      </button>
+      <button class="nav-item" data-page="stress">
+        <i class="fa-solid fa-brain"></i><span>Stress</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="main">
+
+    <section class="page page--active" id="page-dashboard">
+      <header class="page-header">
+        <h1>Dashboard</h1>
+        <p>Overview of today’s wellness.</p>
+      </header>
+
+      <section class="cards-grid">
+        <article class="metric-card">
+          <div class="metric-icon gradient-blue">
+            <i class="fa-solid fa-droplet"></i>
+          </div>
+          <div class="metric-content">
+            <h3>Water</h3>
+            <p class="metric-value" id="dash-water">0 / 8 cups</p>
+          </div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-icon gradient-purple">
+            <i class="fa-regular fa-moon"></i>
+          </div>
+          <div class="metric-content">
+            <h3>Sleep</h3>
+            <p class="metric-value" id="dash-sleep">0 h</p>
+          </div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-icon gradient-green">
+            <i class="fa-regular fa-user"></i>
+          </div>
+          <div class="metric-content">
+            <h3>Body Metrics</h3>
+            <p class="metric-value" id="dash-bmi">BMI: –</p>
+          </div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-icon gradient-pink">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div class="metric-content">
+            <h3>Stress</h3>
+            <p class="metric-value" id="dash-stress">Not logged</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="card-big">
+        <div class="quick-actions-header">
+          <div class="action-icon-main">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <h2>Quick Actions</h2>
+        </div>
+        <p class="section-subtitle">Use the sidebar to navigate to different tracking sections</p>
+
+        <div class="actions-grid">
+          <div class="action-item bg-purple-light">
+            <span class="dot dot-purple"></span>
+            <span>Log your sleep quality and duration</span>
+          </div>
+          <div class="action-item bg-blue-light">
+            <span class="dot dot-blue"></span>
+            <span>Track your daily water intake</span>
+          </div>
+          <div class="action-item bg-green-light">
+            <span class="dot dot-green"></span>
+            <span>Record meals and nutrition</span>
+          </div>
+          <div class="action-item bg-orange-light">
+            <span class="dot dot-orange"></span>
+            <span>Log workouts and activities</span>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="page" id="page-hydration">
+      <header class="page-header">
+        <h1>Hydration Tracking</h1>
+        <p>Stay hydrated and reach your daily water goals.</p>
+      </header>
+      <section class="card-big">
+        <div class="top-row">
+          <h2>Daily Goal Progress</h2>
+          <span id="hydration-summary">0 / 8 cups</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="hydration-bar"></div>
+        </div>
+        <form class="form-row" id="hydration-form">
+          <input type="number" id="hydration-input" min="0" step="0.5" placeholder="Amount (cups)">
+          <button type="submit" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> Add
+          </button>
+        </form>
+      </section>
+      <section class="list-card">
+        <h3>Recent Entries</h3>
+        <div id="hydration-list" class="entries-list empty-note">No hydration logged yet.</div>
+      </section>
+    </section>
+
+    <section class="page" id="page-body">
+      <header class="page-header">
+        <h1>Body Metrics</h1>
+        <p>Track weight, height and BMI.</p>
+      </header>
+      <section class="card-big">
+        <form class="form-grid" id="body-form">
+          <input type="number" id="body-weight" min="0" step="0.1" placeholder="Weight (kg)">
+          <input type="number" id="body-height" min="0" step="0.1" placeholder="Height (cm)">
+          <button type="submit" class="btn-primary">Calculate BMI</button>
+        </form>
+        <p class="bmi-result" id="bmi-result">BMI: –</p>
+      </section>
+      <section class="list-card">
+        <h3>History</h3>
+        <div id="body-list" class="entries-list empty-note">No body metrics saved yet.</div>
+      </section>
+    </section>
+
+    <section class="page" id="page-sleep">
+      <header class="page-header">
+        <h1>Sleep</h1>
+        <p>Log your sleep duration and quality.</p>
+      </header>
+      <section class="card-big">
+        <div class="top-row">
+          <h2>Last Night</h2>
+          <span id="sleep-summary">0 h</span>
+        </div>
+        <form class="form-grid" id="sleep-form">
+          <input type="number" id="sleep-hours" min="0" max="24" step="0.25" placeholder="Hours slept">
+          <select id="sleep-quality">
+            <option value="">Quality</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Okay</option>
+            <option>Poor</option>
+          </select>
+          <button type="submit" class="btn-primary">Save</button>
+        </form>
+      </section>
+      <section class="list-card">
+        <h3>Recent Nights</h3>
+        <div id="sleep-list" class="entries-list empty-note">No sleep logged yet.</div>
+      </section>
+    </section>
+
+    <section class="page" id="page-stress">
+      <header class="page-header">
+        <h1>Stress</h1>
+        <p>Record how stressed you feel during the day.</p>
+      </header>
+      <section class="card-big">
+        <div class="top-row">
+          <h2>Current Level</h2>
+          <span id="stress-summary">Not logged</span>
+        </div>
+        <form class="form-grid" id="stress-form">
+          <select id="stress-level">
+            <option value="">Level</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <input type="text" id="stress-note" placeholder="Note (optional)">
+          <button type="submit" class="btn-primary">Save</button>
+        </form>
+      </section>
+      <section class="list-card">
+        <h3>Recent Logs</h3>
+        <div id="stress-list" class="entries-list empty-note">No stress logs yet.</div>
+      </section>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
