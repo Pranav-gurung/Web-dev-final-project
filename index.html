@@ -5,6 +5,7 @@
   <title>Wellness Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,6 +32,12 @@
       <button class="nav-item" data-page="stress">
         <i class="fa-solid fa-brain"></i><span>Stress</span>
       </button>
+      <button class="nav-item" id="openLogin">
+        <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
+      </button>
+      <button class="nav-item" id="openFeedback">
+        <i class="fa-solid fa-comment-dots"></i><span>Feedback</span>
+      </button>
     </nav>
   </aside>
 
@@ -38,8 +45,24 @@
 
     <section class="page page--active" id="page-dashboard">
       <header class="page-header">
-        <h1>Dashboard</h1>
-        <p>Overview of today’s wellness.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Overview of today’s wellness.</p>
+          </div>
+          <div class="universal-selector" style="background: #fff; padding: 10px 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <label for="global-day-select" style="font-weight: 600; color: #6c3bff; margin-right: 8px;">Logging for Day:</label>
+            <select id="global-day-select" style="border: 1px solid #ddd; border-radius: 6px; padding: 5px;">
+              <option value="0">Monday</option>
+              <option value="1">Tuesday</option>
+              <option value="2">Wednesday</option>
+              <option value="3">Thursday</option>
+              <option value="4">Friday</option>
+              <option value="5">Saturday</option>
+              <option value="6" selected>Sunday</option>
+            </select>
+          </div>
+        </div>
       </header>
 
       <section class="cards-grid">
@@ -85,6 +108,13 @@
       </section>
 
       <section class="card-big">
+        <h3>Weekly Activity</h3>
+        <div style="position: relative; height:300px;">
+          <canvas id="wellnessChart"></canvas>
+        </div>
+      </section>
+
+      <section class="card-big">
         <div class="quick-actions-header">
           <div class="action-icon-main">
             <i class="fa-solid fa-bolt"></i>
@@ -92,7 +122,6 @@
           <h2>Quick Actions</h2>
         </div>
         <p class="section-subtitle">Use the sidebar to navigate to different tracking sections</p>
-
         <div class="actions-grid">
           <div class="action-item bg-purple-light">
             <span class="dot dot-purple"></span>
@@ -104,11 +133,11 @@
           </div>
           <div class="action-item bg-green-light">
             <span class="dot dot-green"></span>
-            <span>Record meals and nutrition</span>
+            <span>Record your stress and leave a note about your day</span>
           </div>
           <div class="action-item bg-orange-light">
             <span class="dot dot-orange"></span>
-            <span>Log workouts and activities</span>
+            <span>Log your weight and height and calulate your BMI</span>
           </div>
         </div>
       </section>
@@ -215,6 +244,58 @@
     </section>
 
   </main>
+</div>
+
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <div class="login-header">
+      <h2>Sign in</h2>
+      <p>Use your Wellness Account</p>
+    </div>
+    <form id="login-form-actual">
+      <div class="modal-input-group">
+  <input type="text" id="login-email" placeholder="Gmail Address (@gmail.com)" required>
+</div>
+      <div class="modal-input-group">
+        <input type="tel" id="login-phone" placeholder="Mobile Number (10 digits)" maxlength="10" required>
+      </div>
+      <div class="modal-input-group">
+        <input type="password" id="login-password" placeholder="Enter your password" required>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn-primary" style="width: 100%; border-radius: 4px;">Next</button>
+      </div>
+    </form>
+    <div id="login-msg"></div>
+  </div>
+</div>
+
+<div id="feedbackModal" class="modal">
+  <div class="modal-content">
+    <span class="close-feedback" style="position: absolute; top: 15px; right: 20px; font-size: 28px; color: #6b7280; cursor: pointer;">&times;</span>
+    <div class="login-header">
+      <h2>App Feedback</h2>
+      <p>How can we improve your experience?</p>
+    </div>
+    <form id="feedback-form-actual">
+      <div class="modal-input-group">
+        <select id="feedback-type" required>
+          <option value="">Select Category</option>
+          <option>Suggestion</option>
+          <option>Bug Report</option>
+          <option>Compliment</option>
+        </select>
+      </div>
+      <div class="modal-input-group">
+        <textarea id="feedback-text" placeholder="Tell us more..." style="width: 100%; height: 100px; font-family: inherit;" required></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn-primary" style="width: 100%; border-radius: 4px;">Submit Feedback</button>
+      </div>
+    </form>
+    <div id="feedback-msg"></div>
+  </div>
 </div>
 
 <script src="app.js"></script>
