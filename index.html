@@ -18,7 +18,10 @@
 
     <nav class="nav">
       <button class="nav-item active" data-page="dashboard">
-        <i class="fa-solid fa-grid-2"></i><span>Dashboard</span>
+        <i class="fa-solid fa-house"></i><span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-page="insights">
+        <i class="fa-solid fa-chart-line"></i><span>Insights</span>
       </button>
       <button class="nav-item" data-page="hydration">
         <i class="fa-solid fa-droplet"></i><span>Hydration</span>
@@ -31,6 +34,9 @@
       </button>
       <button class="nav-item" data-page="stress">
         <i class="fa-solid fa-brain"></i><span>Stress</span>
+      </button>
+      <button class="nav-item" data-page="pricing">
+        <i class="fa-solid fa-tags"></i><span>Services & Pricing</span>
       </button>
       <button class="nav-item" id="openLogin">
         <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
@@ -45,14 +51,15 @@
 
     <section class="page page--active" id="page-dashboard">
       <header class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="dashboard-header-flex">
           <div>
             <h1>Dashboard</h1>
             <p>Overview of today’s wellness.</p>
           </div>
-          <div class="universal-selector" style="background: #fff; padding: 10px 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-            <label for="global-day-select" style="font-weight: 600; color: #6c3bff; margin-right: 8px;">Logging for Day:</label>
-            <select id="global-day-select" style="border: 1px solid #ddd; border-radius: 6px; padding: 5px;">
+          
+          <div class="universal-selector">
+            <label for="global-day-select" class="selector-label">Logging /Viewing for Day:</label>
+            <select id="global-day-select" class="day-dropdown">
               <option value="0">Monday</option>
               <option value="1">Tuesday</option>
               <option value="2">Wednesday</option>
@@ -109,7 +116,7 @@
 
       <section class="card-big">
         <h3>Weekly Activity</h3>
-        <div style="position: relative; height:300px;">
+        <div class="chart-container">
           <canvas id="wellnessChart"></canvas>
         </div>
       </section>
@@ -139,6 +146,104 @@
             <span class="dot dot-orange"></span>
             <span>Log your weight and height and calulate your BMI</span>
           </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="page" id="page-insights">
+      <header class="page-header">
+        <h1>Health Insights</h1>
+        <p>Averages and status based on your logged data.</p>
+      </header>
+
+      <section class="cards-grid" id="insights-status-grid">
+        <article class="metric-card" id="insight-card-water">
+          <div class="metric-content">
+            <small>Water Status</small>
+            <h2 class="metric-value">No Data</h2>
+            <p>Avg: 0.0 cups/day</p>
+          </div>
+        </article>
+
+        <article class="metric-card" id="insight-card-sleep">
+          <div class="metric-content">
+            <small>Sleep Average</small>
+            <h2 class="metric-value">0.0 h</h2>
+            <p>Logged over 0 days</p>
+          </div>
+        </article>
+
+        <article class="metric-card" id="insight-card-stress">
+          <div class="metric-content">
+            <small>Stress Level</small>
+            <h2 class="metric-value">N/A</h2>
+            <p>Recent Trend</p>
+          </div>
+        </article>
+
+        <article class="metric-card" id="insight-card-bmi">
+          <div class="metric-content">
+            <small>BMI Category</small>
+            <h2 class="metric-value">--</h2>
+            <p>Based on Body Metrics</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="card-big">
+        <h3>Average Performance</h3>
+        <div id="insights-averages-display">
+            <p class="empty-note">Log data for at least one day to see your averages.</p>
+        </div>
+      </section>
+    </section>
+
+    <section class="page" id="page-pricing">
+      <header class="page-header">
+        <h1>Premium Services</h1>
+        <p>Connect with professionals to accelerate your health goals.</p>
+      </header>
+      
+      <div class="pricing-grid">
+        <article class="card-big pricing-card">
+          <h3>Consultant Trial</h3>
+          <h2 class="price-text">$0 <small>/7 days</small></h2>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-check check-icon"></i> 1 Consultation Call</li>
+            <li><i class="fa-solid fa-check check-icon"></i> App Feature Access</li>
+            <li><i class="fa-solid fa-xmark x-icon"></i> No Custom Workout</li>
+          </ul>
+          <button class="btn-primary product-btn" data-price="0" data-name="7-Day Trial">Start 7-Day Trial</button>
+        </article>
+
+        <article class="card-big pricing-card featured-card">
+          <span class="popular-badge">MOST POPULAR</span>
+          <h3>Gym & Trainer</h3>
+          <h2 class="price-text">$39 <small>/mo</small></h2>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-check check-icon"></i> Personal Gym Trainer</li>
+            <li><i class="fa-solid fa-check check-icon"></i> Video Exercise Guide</li>
+            <li><i class="fa-solid fa-check check-icon"></i> Custom Diet Chart</li>
+          </ul>
+          <button class="btn-primary product-btn" data-price="39" data-name="Gym Trainer">Get Started</button>
+        </article>
+
+        <article class="card-big pricing-card">
+          <h3>Health Expert</h3>
+          <h2 class="price-text">$89 <small>/mo</small></h2>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-check check-icon"></i> Dedicated Consultant</li>
+            <li><i class="fa-solid fa-check check-icon"></i> Monthly Reports</li>
+            <li><i class="fa-solid fa-check check-icon"></i> 24/7 Chat Support</li>
+          </ul>
+          <button class="btn-primary product-btn" data-price="89" data-name="Health Expert">Select Plan</button>
+        </article>
+      </div>
+
+      <section class="list-card" style="margin-top: 40px;">
+        <h3>Your Subscriptions</h3>
+        <div id="purchase-list-container" class="entries-list empty-note">
+          No active subscriptions or past purchases.
         </div>
       </section>
     </section>
@@ -255,8 +360,8 @@
     </div>
     <form id="login-form-actual">
       <div class="modal-input-group">
-  <input type="text" id="login-email" placeholder="Gmail Address (@gmail.com)" required>
-</div>
+        <input type="text" id="login-email" placeholder="Gmail Address (@gmail.com)" required>
+      </div>
       <div class="modal-input-group">
         <input type="tel" id="login-phone" placeholder="Mobile Number (10 digits)" maxlength="10" required>
       </div>
@@ -264,7 +369,7 @@
         <input type="password" id="login-password" placeholder="Enter your password" required>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn-primary" style="width: 100%; border-radius: 4px;">Next</button>
+        <button type="submit" class="btn-primary full-width-btn">Next</button>
       </div>
     </form>
     <div id="login-msg"></div>
@@ -273,12 +378,23 @@
 
 <div id="feedbackModal" class="modal">
   <div class="modal-content">
-    <span class="close-feedback" style="position: absolute; top: 15px; right: 20px; font-size: 28px; color: #6b7280; cursor: pointer;">&times;</span>
+    <span class="close-feedback">&times;</span>
     <div class="login-header">
       <h2>App Feedback</h2>
       <p>How can we improve your experience?</p>
     </div>
     <form id="feedback-form-actual">
+      <div class="modal-input-group rating-container">
+        <p>Your Rating:</p>
+        <div class="star-rating">
+          <i class="fa-solid fa-star" data-value="1"></i>
+          <i class="fa-solid fa-star" data-value="2"></i>
+          <i class="fa-solid fa-star" data-value="3"></i>
+          <i class="fa-solid fa-star" data-value="4"></i>
+          <i class="fa-solid fa-star" data-value="5"></i>
+        </div>
+      </div>
+
       <div class="modal-input-group">
         <select id="feedback-type" required>
           <option value="">Select Category</option>
@@ -288,10 +404,10 @@
         </select>
       </div>
       <div class="modal-input-group">
-        <textarea id="feedback-text" placeholder="Tell us more..." style="width: 100%; height: 100px; font-family: inherit;" required></textarea>
+        <textarea id="feedback-text" placeholder="Tell us more..." required></textarea>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn-primary" style="width: 100%; border-radius: 4px;">Submit Feedback</button>
+        <button type="submit" class="btn-primary full-width-btn">Submit Feedback</button>
       </div>
     </form>
     <div id="feedback-msg"></div>
