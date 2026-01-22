@@ -45,6 +45,18 @@
         <i class="fa-solid fa-comment-dots"></i><span>Feedback</span>
       </button>
     </nav>
+
+    <div class="sidebar-user-area" id="sidebar-user-area" style="display: none; margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-circle-user" style="font-size: 2rem; color: var(--primary-color, #4facfe);"></i>
+        <div style="overflow: hidden;">
+          <p id="display-user-name" style="margin: 0; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">User Name</p>
+          <button id="logout-btn" style="background: none; border: none; color: #ff4b2b; padding: 0; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+            <i class="fa-solid fa-power-off"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
   </aside>
 
   <main class="main">

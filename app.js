@@ -6,6 +6,11 @@ const openLoginBtn = document.getElementById('openLogin');
 const closeBtn = document.querySelector('.close-btn');
 const loginFormActual = document.getElementById('login-form-actual');
 
+// NEW USER ELEMENTS
+const sidebarUserArea = document.getElementById('sidebar-user-area');
+const displayUserName = document.getElementById('display-user-name');
+const logoutBtn = document.getElementById('logout-btn');
+
 // NEW FEEDBACK CONSTANTS
 const feedbackModal = document.getElementById('feedbackModal');
 const openFeedbackBtn = document.getElementById('openFeedback');
@@ -14,6 +19,122 @@ const feedbackFormActual = document.getElementById('feedback-form-actual');
 const stars = document.querySelectorAll('.star-rating i'); 
 
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+// --- STORAGE LOGIC ---
+function saveData() {
+  const currentUser = localStorage.getItem('wellness_user');
+  if (currentUser) {
+    localStorage.setItem(`data_${currentUser}`, JSON.stringify(state));
+  }
+}
+
+// NEW FIX: Helper to rebuild all history lists in the UI from the 'state' object
+function refreshHistoryLists() {
+    // Clear all existing entries first
+    if (hydrationList) hydrationList.innerHTML = '';
+    if (sleepList) sleepList.innerHTML = '';
+    if (stressList) stressList.innerHTML = '';
+    if (bodyList) bodyList.innerHTML = '';
+    if (purchaseListContainer) purchaseListContainer.innerHTML = '';
+
+    // Re-render Hydration History
+    state.hydrationHistory.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.innerHTML = `<div><div class="entry-main">+${entry.amount} cups (${entry.day || 'Logged'})</div><div class="entry-meta">${entry.at}</div></div>`;
+        if (hydrationList) {
+            hydrationList.classList.remove('empty-note');
+            hydrationList.prepend(div);
+        }
+    });
+
+    // Re-render Sleep History
+    state.sleepHistory.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'entry';
+        item.innerHTML = `<div><div class="entry-main">${entry.hours} h (${entry.day || 'Logged'})</div><div class="entry-meta">${entry.at}</div></div>`;
+        if (sleepList) {
+            sleepList.classList.remove('empty-note');
+            sleepList.prepend(item);
+        }
+    });
+
+    // Re-render Stress History
+    state.stressHistory.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'entry';
+        item.innerHTML = `<div><div class="entry-main">${entry.level} (${entry.day || 'Logged'})</div><div class="entry-meta">${entry.at}${entry.note ? ' • ' + entry.note : ''}</div></div>`;
+        if (stressList) {
+            stressList.classList.remove('empty-note');
+            stressList.prepend(item);
+        }
+    });
+
+    // Re-render Body History
+    state.bodyHistory.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'entry';
+        item.innerHTML = `<div><div class="entry-main">${entry.weight} kg (${entry.day || 'Logged'})</div><div class="entry-meta">BMI ${entry.bmi} · ${entry.at}</div></div>`;
+        if (bodyList) {
+            bodyList.classList.remove('empty-note');
+            bodyList.prepend(item);
+        }
+    });
+
+    // Re-render Purchases
+    state.purchaseHistory.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.innerHTML = `<div><div class="entry-main">${entry.name} Plan</div><div class="entry-meta">Price: $${entry.price} • ${entry.at}</div></div><div style="color: #22c55e; font-weight: bold;">Active</div>`;
+        if (purchaseListContainer) {
+            purchaseListContainer.classList.remove('empty-note');
+            purchaseListContainer.prepend(div);
+        }
+    });
+}
+
+function loadData() {
+  const currentUser = localStorage.getItem('wellness_user');
+  if (currentUser) {
+    const saved = localStorage.getItem(`data_${currentUser}`);
+    if (saved) {
+      Object.assign(state, JSON.parse(saved));
+      // Sync Chart
+      wellnessChart.data.datasets[0].data = [...state.weeklyHydration];
+      wellnessChart.data.datasets[2].data = [...state.weeklySleep];
+      wellnessChart.data.datasets[3].data = [...state.weeklyWeight];
+      
+      // Update Stress Chart specifically
+      const mapping = { 'Low': 2, 'Medium': 5, 'High': 8 };
+      wellnessChart.data.datasets[1].data = state.weeklyStress.map(lvl => mapping[lvl] || 0);
+      
+      wellnessChart.update();
+      refreshHistoryLists(); // SYNC UI LISTS
+    }
+  }
+}
+
+// --- USER SESSION LOGIC (NO BACKEND) ---
+function updateUserUI() {
+  const savedUser = localStorage.getItem('wellness_user');
+  if (savedUser) {
+    if (openLoginBtn) openLoginBtn.style.display = 'none';
+    if (sidebarUserArea) sidebarUserArea.style.display = 'block';
+    if (displayUserName) displayUserName.textContent = savedUser;
+    loadData(); // Load specific user data here
+    updateDashboard();
+  } else {
+    if (openLoginBtn) openLoginBtn.style.display = 'flex';
+    if (sidebarUserArea) sidebarUserArea.style.display = 'none';
+  }
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('wellness_user');
+    window.location.reload(); // Refresh to reset all states
+  });
+}
 
 // HELPER: Get the currently selected day index from the Universal Selector
 function getSelectedDayIndex() {
@@ -58,9 +179,10 @@ navBtns.forEach(btn => {
 });
 
 const state = {
+  registeredPhone: null,
+  registeredPass: null, 
   hydrationGoal: 8,
   bodyHistory: [],
-  // We added arrays to track BMI and Weight per day
   weeklyWeight: [0, 0, 0, 0, 0, 0, 0],
   weeklyBMI: [null, null, null, null, null, null, null],
   lastSleep: null,
@@ -70,9 +192,10 @@ const state = {
   totalCost: 0,
   selectedRating: 0,
   weeklyHydration: [0, 0, 0, 0, 0, 0, 0],
+  hydrationHistory: [], // Added to track individual water log items
   weeklySleep: [0, 0, 0, 0, 0, 0, 0],
   weeklyStress: [null, null, null, null, null, null, null],
-  purchaseHistory: [] // Tracked purchases
+  purchaseHistory: [] 
 };
 
 function timeNow() {
@@ -88,14 +211,12 @@ function calculateInsights() {
   const stressCard = document.getElementById('insight-card-stress');
   const bmiCard = document.getElementById('insight-card-bmi');
 
-  // 1. DATA CALCULATIONS
   const hydrationDays = state.weeklyHydration.filter(val => val > 0);
   const sleepDays = state.weeklySleep.filter(val => val > 0);
 
   const avgWater = hydrationDays.length > 0 ? (hydrationDays.reduce((a, b) => a + b, 0) / hydrationDays.length) : 0;
   const avgSleep = sleepDays.length > 0 ? (sleepDays.reduce((a, b) => a + b, 0) / sleepDays.length) : 0;
 
-  // 2. WATER LOGIC
   let waterStatus = "No Data", waterColor = "#94a3b8";
   if (hydrationDays.length > 0) {
     if (avgWater >= 8) { waterStatus = "Excellent"; waterColor = "#22c55e"; }
@@ -109,7 +230,6 @@ function calculateInsights() {
     waterCard.querySelector('p').textContent = `Avg: ${avgWater.toFixed(1)} cups/day`;
   }
 
-  // 3. SLEEP LOGIC
   let sleepColor = "#94a3b8";
   if (sleepDays.length > 0) {
     sleepColor = avgSleep >= 7 ? "#a63bff" : (avgSleep >= 5 ? "#f59e0b" : "#ef4444");
@@ -120,7 +240,6 @@ function calculateInsights() {
     sleepCard.querySelector('p').textContent = `Logged over ${sleepDays.length} days`;
   }
 
-  // 4. STRESS LOGIC (With Appreciative/Suggestive Messages)
   let stressVal = "N/A", stressColor = "#94a3b8", stressMessage = "Log your stress to see advice.";
   if (state.stressHistory.length > 0) {
     stressVal = state.stressHistory[state.stressHistory.length - 1].level;
@@ -141,7 +260,6 @@ function calculateInsights() {
     stressCard.querySelector('h2').style.color = stressColor;
   }
 
-  // 5. BMI LOGIC (Fixed to show Current Day BMI)
   const dayIdx = getSelectedDayIndex();
   const currentBMI = state.weeklyBMI[dayIdx];
   if(bmiCard) {
@@ -157,7 +275,6 @@ function calculateInsights() {
     }
   }
 
-  // 6. DETAILED RECOMMENDATIONS
   if(averagesDisplay) {
     averagesDisplay.innerHTML = `
       <div class="insight-item">
@@ -181,7 +298,6 @@ function updateDashboard() {
   const currentSleep = state.weeklySleep[dayIdx];
   if (dashSleep) dashSleep.textContent = currentSleep > 0 ? `${currentSleep} h` : '0 h';
   
-  // BMI Display Fixed for the selected day
   const dayBMI = state.weeklyBMI[dayIdx];
   if (dashBmi) dashBmi.textContent = dayBMI ? `BMI: ${dayBMI}` : 'BMI: –';
   
@@ -196,22 +312,9 @@ const purchaseListContainer = document.getElementById('purchase-list-container')
 function addPurchaseEntry(name, price) {
   const entry = { name, price, at: timeNow() };
   state.purchaseHistory.push(entry);
+  saveData();
 
-  if (purchaseListContainer && purchaseListContainer.classList.contains('empty-note')) {
-    purchaseListContainer.classList.remove('empty-note');
-    purchaseListContainer.textContent = '';
-  }
-
-  const div = document.createElement('div');
-  div.className = 'entry';
-  div.innerHTML = `
-    <div>
-      <div class="entry-main">${name} Plan</div>
-      <div class="entry-meta">Price: $${price} • ${entry.at}</div>
-    </div>
-    <div style="color: #22c55e; font-weight: bold;">Active</div>
-  `;
-  if (purchaseListContainer) purchaseListContainer.prepend(div);
+  refreshHistoryLists(); // SYNC UI
 }
 
 planButtons.forEach(btn => {
@@ -254,17 +357,13 @@ function addHydrationEntry(amount) {
   const dayIdx = getSelectedDayIndex();
   state.weeklyHydration[dayIdx] = +(state.weeklyHydration[dayIdx] + amount).toFixed(2);
   
+  // FIX: Push to persistent history
+  state.hydrationHistory.push({ amount, day: daysOfWeek[dayIdx], at: timeNow() });
+
   wellnessChart.data.datasets[0].data[dayIdx] = state.weeklyHydration[dayIdx];
   wellnessChart.update();
-
-  if (hydrationList && hydrationList.classList.contains('empty-note')) {
-    hydrationList.classList.remove('empty-note');
-    hydrationList.textContent = '';
-  }
-  const div = document.createElement('div');
-  div.className = 'entry';
-  div.innerHTML = `<div><div class="entry-main">+${amount} cups (${daysOfWeek[dayIdx]})</div><div class="entry-meta">${timeNow()}</div></div>`;
-  if (hydrationList) hydrationList.prepend(div);
+  saveData();
+  refreshHistoryLists(); // SYNC UI
   updateHydrationUI();
 }
 
@@ -294,24 +393,16 @@ function bmiCategory(bmi) {
 
 function addBodyEntry(weight, height, bmi) {
   const dayIdx = getSelectedDayIndex();
-  
-  // Update state for the specific day
   state.weeklyWeight[dayIdx] = weight;
   state.weeklyBMI[dayIdx] = bmi;
   state.bodyHistory.push({ weight, height, bmi, at: timeNow(), day: daysOfWeek[dayIdx] });
   
   wellnessChart.data.datasets[3].data[dayIdx] = weight;
   wellnessChart.update();
+  saveData();
 
   if (bmiResult) bmiResult.textContent = `BMI: ${bmi} (${bmiCategory(bmi)})`;
-  if (bodyList && bodyList.classList.contains('empty-note')) {
-    bodyList.classList.remove('empty-note');
-    bodyList.textContent = '';
-  }
-  const item = document.createElement('div');
-  item.className = 'entry';
-  item.innerHTML = `<div><div class="entry-main">${weight} kg (${daysOfWeek[dayIdx]})</div><div class="entry-meta">BMI ${bmi} · ${timeNow()}</div></div>`;
-  if (bodyList) bodyList.prepend(item);
+  refreshHistoryLists(); // SYNC UI
   updateDashboard();
 }
 
@@ -337,7 +428,7 @@ const sleepList = document.getElementById('sleep-list');
 
 function addSleepEntry(hours, quality) {
   const dayIdx = getSelectedDayIndex();
-  const entry = { hours, quality, at: timeNow() };
+  const entry = { hours, quality, day: daysOfWeek[dayIdx], at: timeNow() };
   
   state.lastSleep = entry;
   state.sleepHistory.push(entry);
@@ -345,16 +436,10 @@ function addSleepEntry(hours, quality) {
 
   wellnessChart.data.datasets[2].data[dayIdx] = hours;
   wellnessChart.update();
+  saveData();
 
   if (sleepSummary) sleepSummary.textContent = `${hours} h (${quality})`;
-  if (sleepList && sleepList.classList.contains('empty-note')) {
-    sleepList.classList.remove('empty-note');
-    sleepList.textContent = '';
-  }
-  const item = document.createElement('div');
-  item.className = 'entry';
-  item.innerHTML = `<div><div class="entry-main">${hours} h (${daysOfWeek[dayIdx]})</div><div class="entry-meta">${entry.at}</div></div>`;
-  if (sleepList) sleepList.prepend(item);
+  refreshHistoryLists(); // SYNC UI
   updateDashboard();
 }
 
@@ -378,7 +463,7 @@ const stressList = document.getElementById('stress-list');
 
 function addStressEntry(level, note) {
   const dayIdx = getSelectedDayIndex();
-  const entry = { level, note, at: timeNow() };
+  const entry = { level, note, day: daysOfWeek[dayIdx], at: timeNow() };
   
   state.lastStress = entry;
   state.stressHistory.push(entry);
@@ -387,16 +472,10 @@ function addStressEntry(level, note) {
   const stressMapping = { 'Low': 2, 'Medium': 5, 'High': 8 }; 
   wellnessChart.data.datasets[1].data[dayIdx] = stressMapping[level] || 0;
   wellnessChart.update();
+  saveData();
 
   if (stressSummary) stressSummary.textContent = level;
-  if (stressList && stressList.classList.contains('empty-note')) {
-    stressList.classList.remove('empty-note');
-    stressList.textContent = '';
-  }
-  const item = document.createElement('div');
-  item.className = 'entry';
-  item.innerHTML = `<div><div class="entry-main">${level} (${daysOfWeek[dayIdx]})</div><div class="entry-meta">${entry.at}${note ? ' • ' + note : ''}</div></div>`;
-  if (stressList) stressList.prepend(item);
+  refreshHistoryLists(); // SYNC UI
   updateDashboard();
 }
 
@@ -419,24 +498,55 @@ loginFormActual.addEventListener('submit', (e) => {
     e.preventDefault(); 
     const emailField = document.getElementById('login-email');
     const phoneField = document.getElementById('login-phone');
+    const passField = document.getElementById('login-password'); // MATCHING YOUR HTML ID
     const msg = document.getElementById('login-msg');
+    
     const emailValue = emailField.value.trim().toLowerCase();
     const phoneValue = phoneField.value.trim();
+    const passValue = passField ? passField.value.trim() : "";
 
+    // VALIDATIONS
     if (!emailValue.endsWith('@gmail.com') || emailValue.length <= 10) {
-        msg.style.color = "#ff4d4d";
-        msg.textContent = "enter valid gmail";
-        emailField.focus();
-        return; 
+        msg.style.color = "#ff4d4d"; msg.textContent = "enter valid gmail";
+        emailField.focus(); return; 
     } 
-
     const indianPhonePattern = /^[6-9][0-9]{9}$/; 
     if (!indianPhonePattern.test(phoneValue)) {
-        msg.style.color = "#ff4d4d";
-        msg.textContent = "enter valid mobile number";
-        phoneField.focus();
-        return; 
+        msg.style.color = "#ff4d4d"; msg.textContent = "enter valid mobile number";
+        phoneField.focus(); return; 
     } 
+    
+    // Minimal password check to prevent empty login
+    if (passValue.length === 0) {
+        msg.style.color = "#ff4d4d"; msg.textContent = "password required";
+        return;
+    }
+
+    const userName = emailValue.split('@')[0];
+    
+    // DATA VERIFICATION
+    const existingData = localStorage.getItem(`data_${userName}`);
+    if (existingData) {
+        const parsedData = JSON.parse(existingData);
+        if (parsedData.registeredPhone && parsedData.registeredPhone !== phoneValue) {
+            msg.style.color = "#ff4d4d"; msg.textContent = "mobile number does not match account!";
+            return;
+        }
+        if (parsedData.registeredPass && parsedData.registeredPass !== passValue) {
+            msg.style.color = "#ff4d4d"; msg.textContent = "incorrect password!";
+            return;
+        }
+    } else {
+        // IMPORTANT: If this is a new email, reset the phone/pass in the global 'state' 
+        // to prevent data leaking from the previous user who logged out.
+        state.registeredPhone = null;
+        state.registeredPass = null;
+    }
+
+    // SUCCESS
+    localStorage.setItem('wellness_user', userName);
+    if (!state.registeredPhone) state.registeredPhone = phoneValue;
+    if (!state.registeredPass) state.registeredPass = passValue;
 
     msg.style.color = "#2ecc71";
     msg.textContent = "Verified. Syncing data...";
@@ -445,6 +555,8 @@ loginFormActual.addEventListener('submit', (e) => {
         loginModal.style.display = 'none'; 
         loginFormActual.reset(); 
         msg.textContent = ""; 
+        updateUserUI(); 
+        saveData();
     }, 1500);
 });
 
@@ -499,45 +611,15 @@ const wellnessChart = new Chart(document.getElementById('wellnessChart').getCont
     data: {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [
-            {
-                label: 'Water (Cups)',
-                type: 'bar',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                backgroundColor: 'rgba(37, 99, 235, 0.6)',
-                borderColor: '#2563eb',
-                borderWidth: 1
-            },
-            {
-                label: 'Stress Level',
-                type: 'line',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                borderColor: '#ec4899',
-                tension: 0.3,
-                fill: false
-            },
-            {
-                label: 'Sleep (Hours)',
-                type: 'bar',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                backgroundColor: 'rgba(166, 59, 255, 0.6)',
-                borderColor: '#a63bff',
-                borderWidth: 1
-            },
-            {
-                label: 'Weight (kg)',
-                type: 'line',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                borderColor: '#22c55e',
-                tension: 0.3,
-                fill: false
-            }
+            { label: 'Water', type: 'bar', data: [0,0,0,0,0,0,0], backgroundColor: 'rgba(37, 99, 235, 0.6)' },
+            { label: 'Stress', type: 'line', data: [0,0,0,0,0,0,0], borderColor: '#ec4899' },
+            { label: 'Sleep', type: 'bar', data: [0,0,0,0,0,0,0], backgroundColor: 'rgba(166, 59, 255, 0.6)' },
+            { label: 'Weight', type: 'line', data: [0,0,0,0,0,0,0], borderColor: '#22c55e' }
         ]
     },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true } }
-    }
+    options: { responsive: true, maintainAspectRatio: false }
 });
 
+// --- INITIALIZE PAGE ---
 updateDashboard();
+updateUserUI();
