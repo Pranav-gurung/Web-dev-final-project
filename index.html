@@ -252,6 +252,17 @@
         </article>
       </div>
 
+      <section class="card-big" id="cart-container" style="margin-top: 30px; border: 2px dashed #6c3bff;">
+        <h3><i class="fa-solid fa-cart-shopping"></i> Selected Services</h3>
+        <div id="cart-items-list" class="entries-list" style="margin: 15px 0;">
+            <p class="empty-note">Click a service above to add to your cart.</p>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #eee;">
+            <p style="font-weight: bold; font-size: 1.1rem;">Total: $<span id="cart-total-price">0</span></p>
+            <button id="checkout-btn" class="btn-primary" style="background: var(--sidebar-bg);">Confirm Selection</button>
+        </div>
+      </section>
+
       <section class="list-card" style="margin-top: 40px;">
         <h3>Your Subscriptions</h3>
         <div id="purchase-list-container" class="entries-list empty-note">

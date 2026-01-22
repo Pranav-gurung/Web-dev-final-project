@@ -18,6 +18,11 @@ const closeFeedbackBtn = document.querySelector('.close-feedback');
 const feedbackFormActual = document.getElementById('feedback-form-actual');
 const stars = document.querySelectorAll('.star-rating i'); 
 
+// CART DOM ELEMENTS
+const cartItemsList = document.getElementById('cart-items-list');
+const cartTotalPrice = document.getElementById('cart-total-price');
+const checkoutBtn = document.getElementById('checkout-btn');
+
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 // --- STORAGE LOGIC ---
@@ -110,6 +115,7 @@ function loadData() {
       
       wellnessChart.update();
       refreshHistoryLists(); // SYNC UI LISTS
+      refreshCartUI();       // SYNC CART
     }
   }
 }
@@ -192,10 +198,11 @@ const state = {
   totalCost: 0,
   selectedRating: 0,
   weeklyHydration: [0, 0, 0, 0, 0, 0, 0],
-  hydrationHistory: [], // Added to track individual water log items
+  hydrationHistory: [], 
   weeklySleep: [0, 0, 0, 0, 0, 0, 0],
   weeklyStress: [null, null, null, null, null, null, null],
-  purchaseHistory: [] 
+  purchaseHistory: [],
+  cart: [] // NEW: Stores current items in cart
 };
 
 function timeNow() {
@@ -305,36 +312,84 @@ function updateDashboard() {
   if (dashStress) dashStress.textContent = currentStress ? currentStress : 'Not logged';
 }
 
-// --- PRICING & SERVICES LOGIC ---
+// --- CART & PRICING LOGIC ---
 const planButtons = document.querySelectorAll('.product-btn');
 const purchaseListContainer = document.getElementById('purchase-list-container');
 
-function addPurchaseEntry(name, price) {
-  const entry = { name, price, at: timeNow() };
-  state.purchaseHistory.push(entry);
-  saveData();
+function refreshCartUI() {
+    if (!cartItemsList) return;
+    cartItemsList.innerHTML = '';
+    let total = 0;
 
-  refreshHistoryLists(); // SYNC UI
+    if (state.cart.length === 0) {
+        cartItemsList.innerHTML = '<p class="empty-note">Click a service above to add to your cart.</p>';
+    } else {
+        state.cart.forEach((item, index) => {
+            total += parseInt(item.price);
+            const div = document.createElement('div');
+            div.className = 'entry';
+            div.innerHTML = `
+                <div>
+                    <div class="entry-main">${item.name}</div>
+                    <div class="entry-meta">$${item.price}</div>
+                </div>
+                <button onclick="removeFromCart(${index})" style="background:none; border:none; color:#ef4444; cursor:pointer;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>`;
+            cartItemsList.appendChild(div);
+        });
+    }
+    cartTotalPrice.textContent = total;
+}
+
+function removeFromCart(index) {
+    state.cart.splice(index, 1);
+    saveData();
+    refreshCartUI();
 }
 
 planButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const price = btn.dataset.price;
     const planName = btn.dataset.name;
-    state.totalCost = price;
-
-    addPurchaseEntry(planName, price);
-
-    if (price === "0") {
-      alert(`7-Day Trial Activated! You now have temporary access to a Health Consultant.`);
-    } else {
-      alert(`Thank you for choosing the ${planName}! Monthly total: $${price}.`);
-    }
     
-    showPage('dashboard');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Add to state cart
+    state.cart.push({ name: planName, price: price });
+    saveData();
+    refreshCartUI();
+    
+    // Feedback
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Added';
+    setTimeout(() => { btn.innerHTML = btn.dataset.price === "0" ? 'Start 7-Day Trial' : (btn.dataset.price === "39" ? 'Get Started' : 'Select Plan'); }, 1000);
   });
 });
+
+if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', () => {
+        if (state.cart.length === 0) {
+            alert("Your cart is empty!");
+            return;
+        }
+
+        // Move items from cart to purchase history
+        state.cart.forEach(item => {
+            state.purchaseHistory.push({
+                name: item.name,
+                price: item.price,
+                at: timeNow()
+            });
+        });
+
+        const finalTotal = cartTotalPrice.textContent;
+        state.cart = []; // Clear cart
+        saveData();
+        refreshCartUI();
+        refreshHistoryLists();
+
+        alert(`Purchase Confirmed! Total charged: $${finalTotal}. Your services are now active.`);
+        showPage('dashboard');
+    });
+}
 
 // --- HYDRATION LOGIC ---
 const hydrationForm = document.getElementById('hydration-form');
@@ -357,7 +412,6 @@ function addHydrationEntry(amount) {
   const dayIdx = getSelectedDayIndex();
   state.weeklyHydration[dayIdx] = +(state.weeklyHydration[dayIdx] + amount).toFixed(2);
   
-  // FIX: Push to persistent history
   state.hydrationHistory.push({ amount, day: daysOfWeek[dayIdx], at: timeNow() });
 
   wellnessChart.data.datasets[0].data[dayIdx] = state.weeklyHydration[dayIdx];
@@ -498,7 +552,7 @@ loginFormActual.addEventListener('submit', (e) => {
     e.preventDefault(); 
     const emailField = document.getElementById('login-email');
     const phoneField = document.getElementById('login-phone');
-    const passField = document.getElementById('login-password'); // MATCHING YOUR HTML ID
+    const passField = document.getElementById('login-password'); 
     const msg = document.getElementById('login-msg');
     
     const emailValue = emailField.value.trim().toLowerCase();
@@ -516,7 +570,6 @@ loginFormActual.addEventListener('submit', (e) => {
         phoneField.focus(); return; 
     } 
     
-    // Minimal password check to prevent empty login
     if (passValue.length === 0) {
         msg.style.color = "#ff4d4d"; msg.textContent = "password required";
         return;
@@ -537,10 +590,9 @@ loginFormActual.addEventListener('submit', (e) => {
             return;
         }
     } else {
-        // IMPORTANT: If this is a new email, reset the phone/pass in the global 'state' 
-        // to prevent data leaking from the previous user who logged out.
         state.registeredPhone = null;
         state.registeredPass = null;
+        state.cart = []; // Reset cart for new user
     }
 
     // SUCCESS
